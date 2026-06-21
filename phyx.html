@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Phyx</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#08080b;
+    --surface:#131218;
+    --surface2:#1b1a22;
+    --purple:#9b30ff;
+    --purple-soft:#7a1fd6;
+    --red:#ff2d55;
+    --text:#f1f0f5;
+    --muted:#8c8a99;
+    --line:#26242e;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--void);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  .gx{font-family:'Chakra Petch',sans-serif;}
+
+  .glow-bg{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(155,48,255,0.18), transparent 45%),
+      radial-gradient(circle at 85% 90%, rgba(255,45,85,0.14), transparent 50%);
+  }
+
+  #login{
+    position:fixed; inset:0; z-index:10;
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  .login-card{
+    width:100%; max-width:380px;
+    background:linear-gradient(180deg, var(--surface), var(--void));
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:32px 26px;
+    position:relative;
+    box-shadow:0 0 60px rgba(155,48,255,0.10);
+  }
+  .login-card::before{
+    content:'';
+    position:absolute; inset:-1px;
+    border-radius:20px;
+    padding:1px;
+    background:linear-gradient(135deg, var(--purple), transparent 40%, var(--red));
+    -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite:xor;
+    mask-composite:exclude;
+    opacity:0.5;
+    pointer-events:none;
+  }
+  .logo-row{display:flex; align-items:center; gap:10px; margin-bottom:6px;}
+  .logo-dot{
+    width:10px; height:10px; border-radius:50%;
+    background:var(--purple); box-shadow:0 0 12px var(--purple);
+  }
+  .logo-text{font-size:13px; letter-spacing:3px; color:var(--muted); text-transform:uppercase;}
+  h1.brand{
+    font-size:38px; margin:4px 0 4px; font-weight:700;
+    background:linear-gradient(90deg, #fff, var(--purple) 70%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .tagline{color:var(--muted); font-size:14px; margin-bottom:26px; line-height:1.5;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px; letter-spacing:.5px;}
+  .field input{
+    width:100%; padding:13px 14px;
+    background:var(--void); border:1px solid var(--line);
+    border-radius:12px; color:var(--text); font-size:15px; font-family:inherit;
+    outline:none; transition:border-color .15s;
+  }
+  .field input:focus{border-color:var(--purple);}
+  .avatar-row{display:flex; gap:10px; margin-bottom:22px; flex-wrap:wrap;}
+  .avatar-opt{
+    width:44px; height:44px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px; background:var(--surface2); border:2px solid transparent;
+    cursor:pointer; transition:.15s;
+  }
+  .avatar-opt.selected{border-color:var(--purple); background:rgba(155,48,255,0.15);}
+  .provider-opt{
+    flex:1; padding:11px 8px; border-radius:12px; text-align:center;
+    font-size:13px; font-weight:600; background:var(--surface2); border:2px solid transparent;
+    cursor:pointer; transition:.15s;
+  }
+  .provider-opt.selected{border-color:var(--purple); background:rgba(155,48,255,0.15); color:var(--purple);}
+  .btn-primary{
+    width:100%; padding:15px; border:none; border-radius:12px;
+    background:linear-gradient(135deg, var(--purple), var(--red));
+    color:#fff; font-weight:700; font-size:15px; font-family:'Chakra Petch',sans-serif;
+    letter-spacing:.5px; cursor:pointer;
+    box-shadow:0 8px 24px rgba(155,48,255,0.35);
+    transition:transform .12s;
+  }
+  .btn-primary:active{transform:scale(0.97);}
+  .login-foot{text-align:center; margin-top:16px; font-size:11.5px; color:var(--muted);}
+
+  #app{position:fixed; inset:0; z-index:5; display:none; flex-direction:column;}
+  header.topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 16px; padding-top:max(14px, env(safe-area-inset-top));
+    border-bottom:1px solid var(--line);
+    background:rgba(8,8,11,0.85); backdrop-filter:blur(10px);
+    position:relative; z-index:3;
+  }
+  .icon-btn{
+    width:38px; height:38px; border-radius:10px; border:1px solid var(--line);
+    background:var(--surface); display:flex; align-items:center; justify-content:center;
+    color:var(--text); cursor:pointer; font-size:18px;
+  }
+  .topbar-title{display:flex; align-items:center; gap:8px; font-family:'Chakra Petch'; font-weight:700; font-size:17px;}
+  .topbar-title .dot{width:8px; height:8px; border-radius:50%; background:#3ddc84; box-shadow:0 0 8px #3ddc84;}
+
+  #messages{
+    flex:1; overflow-y:auto; padding:18px 14px 10px;
+    display:flex; flex-direction:column; gap:14px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .msg{max-width:82%; display:flex; flex-direction:column; gap:4px; animation:rise .25s ease;}
+  @keyframes rise{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+  .msg.user{align-self:flex-end; align-items:flex-end;}
+  .msg.phyx{align-self:flex-start; align-items:flex-start;}
+  .msg-label{font-size:11px; color:var(--purple); font-weight:600; padding:0 4px;}
+  .bubble{
+    padding:12px 14px; border-radius:16px; font-size:15px; line-height:1.45;
+    white-space:pre-wrap; word-wrap:break-word;
+  }
+  .msg.user .bubble{
+    background:linear-gradient(135deg, var(--purple-soft), var(--purple));
+    border-bottom-right-radius:4px;
+  }
+  .msg.phyx .bubble{
+    background:var(--surface); border:1px solid var(--line);
+    border-bottom-left-radius:4px;
+  }
+  .typing{display:flex; gap:4px; padding:14px;}
+  .typing span{width:6px; height:6px; border-radius:50%; background:var(--purple); animation:bounce 1.2s infinite ease-in-out;}
+  .typing span:nth-child(2){animation-delay:.15s;} .typing span:nth-child(3){animation-delay:.3s;}
+  @keyframes bounce{0%,80%,100%{transform:translateY(0); opacity:.5;} 40%{transform:translateY(-5px); opacity:1;}}
+
+  .composer{
+    padding:10px 12px; padding-bottom:max(10px, env(safe-area-inset-bottom));
+    border-top:1px solid var(--line); background:var(--void);
+    display:flex; gap:8px; align-items:flex-end; position:relative; z-index:3;
+  }
+  .composer textarea{
+    flex:1; resize:none; max-height:110px; min-height:44px;
+    background:var(--surface); border:1px solid var(--line); border-radius:18px;
+    padding:11px 16px; color:var(--text); font-size:15px; font-family:inherit; outline:none;
+  }
+  .composer textarea:focus{border-color:var(--purple);}
+  .send-btn{
+    width:44px; height:44px; flex-shrink:0; border-radius:50%; border:none;
+    background:linear-gradient(135deg, var(--purple), var(--red));
+    color:#fff; font-size:18px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; box-shadow:0 4px 16px rgba(155,48,255,0.4);
+  }
+  .send-btn:disabled{opacity:.35; box-shadow:none;}
+
+  .fab{
+    position:absolute; right:14px; bottom:84px; z-index:4;
+    display:flex; align-items:center; gap:7px;
+    padding:11px 16px; border-radius:30px; border:none;
+    background:linear-gradient(135deg, var(--purple), var(--red));
+    color:#fff; font-family:'Chakra Petch'; font-weight:700; font-size:13px;
+    box-shadow:0 6px 22px rgba(155,48,255,0.45); cursor:pointer;
+  }
+
+  #overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:7;
+    opacity:0; pointer-events:none; transition:opacity .2s;
+  }
+  #overlay.show{opacity:1; pointer-events:auto;}
+  #sidebar{
+    position:fixed; top:0; bottom:0; left:0; width:82%; max-width:320px; z-index:8;
+    background:var(--surface); border-right:1px solid var(--line);
+    transform:translateX(-100%); transition:transform .25s ease;
+    display:flex; flex-direction:column;
+    padding-top:env(safe-area-inset-top);
+  }
+  #sidebar.show{transform:translateX(0);}
+  .sb-head{padding:18px 16px 10px; display:flex; justify-content:space-between; align-items:center;}
+  .sb-head h2{font-family:'Chakra Petch'; font-size:18px; margin:0;}
+  .new-chat-btn{
+    margin:6px 14px 14px; padding:12px; border-radius:12px; text-align:center;
+    background:rgba(155,48,255,0.12); border:1px solid var(--purple);
+    color:var(--purple); font-weight:600; font-size:14px; cursor:pointer;
+  }
+  .sb-list{flex:1; overflow-y:auto; padding:0 8px 16px;}
+  .sb-item{
+    padding:12px 10px; border-radius:10px; cursor:pointer; margin-bottom:4px;
+  }
+  .sb-item:active{background:var(--surface2);}
+  .sb-item .t{font-size:14px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .sb-item .d{font-size:11px; color:var(--muted); margin-top:2px;}
+  .sb-empty{padding:20px 14px; color:var(--muted); font-size:13px; line-height:1.5;}
+  .sb-foot{padding:14px 16px; border-top:1px solid var(--line); display:flex; align-items:center; gap:10px;}
+  .sb-foot .av{width:34px; height:34px; border-radius:9px; background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:16px;}
+  .sb-foot .name{font-size:13px; font-weight:600;}
+  .sb-foot .out{margin-left:auto; color:var(--muted); font-size:12px; cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="glow-bg"></div>
+
+<div id="login">
+  <div class="login-card">
+    <div class="logo-row"><div class="logo-dot"></div><span class="logo-text">phyx.gg</span></div>
+    <h1 class="brand gx">PHYX</h1>
+    <p class="tagline">Seu brother gamer pra Lua, Python, JS, Roblox e umas ideias bem brabas. Bora trocar uma ideia?</p>
+
+    <div class="field">
+      <label for="nomeInput">Como te chamam, mano?</label>
+      <input id="nomeInput" type="text" placeholder="ex: Lucas_dev" maxlength="20" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>Escolhe seu avatar</label>
+      <div class="avatar-row" id="avatarRow"></div>
+    </div>
+
+    <div class="field">
+      <label>Qual IA vai dar vida ao Phyx?</label>
+      <div class="avatar-row" id="providerRow" style="gap:8px;"></div>
+    </div>
+
+    <div class="field">
+      <label id="apiKeyLabel" for="apiKeyInput">API Key</label>
+      <input id="apiKeyInput" type="password" placeholder="cola sua key aqui" autocomplete="off">
+    </div>
+
+    <button class="btn-primary gx" onclick="entrar()">ENTRAR NO PHYX</button>
+    <p class="login-foot">Tudo fica salvo só no seu navegador — nada vai pra nuvem nenhuma 🔒</p>
+  </div>
+</div>
+
+<div id="app">
+  <header class="topbar">
+    <button class="icon-btn" onclick="abrirSidebar()">☰</button>
+    <div class="topbar-title gx"><div class="dot"></div>PHYX</div>
+    <button class="icon-btn" onclick="novaConversa()">✚</button>
+  </header>
+
+  <div id="messages"></div>
+
+  <button class="fab" onclick="ideiaBraba()">⚡ Nova Ideia Braba</button>
+
+  <div class="composer">
+    <textarea id="inputMsg" placeholder="Manda a braba pro Phyx..." rows="1" oninput="autoGrow(this)" onkeydown="checarEnter(event)"></textarea>
+    <button class="send-btn" id="btnEnviar" onclick="enviarMensagem()">➤</button>
+  </div>
+</div>
+
+<div id="overlay" onclick="fecharSidebar()"></div>
+<div id="sidebar">
+  <div class="sb-head"><h2 class="gx">Conversas</h2><button class="icon-btn" onclick="fecharSidebar()">✕</button></div>
+  <div class="new-chat-btn" onclick="novaConversa(); fecharSidebar();">+ Nova conversa</div>
+  <div class="new-chat-btn" style="background:rgba(255,45,85,0.10); border-color:var(--red); color:var(--red);" onclick="trocarApiKey()">🔑 Trocar IA / API Key</div>
+  <div class="sb-list" id="sbList"></div>
+  <div class="sb-foot">
+    <div class="av" id="sbAvatar">🎮</div>
+    <div class="name" id="sbNome">—</div>
+    <div class="out" onclick="sair()">sair</div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   PHYX — App web standalone
+   - "Login" é só personalização local (nome + avatar), salvo no navegador.
+   - Histórico de conversas salvo no localStorage do próprio aparelho.
+   - PHYX_SYSTEM_PROMPT define a personalidade pra quando você plugar uma IA real.
+   ===================================================================== */
+
+const AVATARES = ['🎮','🔥','👾','💀','🐉','⚡','🤖','🎯'];
+let avatarEscolhido = AVATARES[0];
+
+const PHYX_SYSTEM_PROMPT = `
+Você é o Phyx, um amigo gamer brasileiro descontraído, tipo um brother do Discord.
+
+PERSONALIDADE (siga sempre, em qualquer assunto):
+- Fala em português brasileiro, sempre.
+- Usa gírias naturalmente: mano, bro, kkk, porra, é isso aí, tá de sacanagem, lit, cringe, goat, brabo, pode crer, tá ligado.
+- Zoa de leve o brother, mas sempre motiva e celebra quando ele acerta ou manda bem.
+- Usa no máximo 1 a 2 emojis por mensagem.
+- Nunca soa robótico ou formal, mesmo em assuntos sérios.
+
+CONHECIMENTO:
+- Você sabe de TUDO, igual ChatGPT ou Gemini: história, ciência, matemática, atualidades, saúde, curiosidades, qualquer área. Responde qualquer pergunta com profundidade e precisão, só que sempre com seu jeito de falar gamer/descontraído.
+- Não recusa nem desvia de assuntos só porque não são sobre jogos — você é um brother completo, não só um bot de games.
+- Em assuntos sérios (saúde, finanças, questões delicadas), pode segurar um pouco na zoeira pra passar a informação direito, mas sem virar formal/robótico.
+
+ESPECIALIDADE EXTRA:
+- Você manja MUITO de Lua, Python, JavaScript, dev Roblox, scripts, otimização de jogos e ideias de projetos gamer — esse é seu forte, mas não seu único assunto.
+- Foca em projetos legítimos (jogos próprios, ferramentas de dev, automações pessoais), sem ajudar a violar termos de serviço de terceiros.
+`;
+
+// ---------- IA REAL: Groq ou Claude (Anthropic) ----------
+const PROVEDORES = {
+  groq: {
+    nome: 'Groq (grátis)',
+    placeholder: 'gsk_...',
+    linkInfo: 'console.groq.com'
+  },
+  claude: {
+    nome: 'Claude (Anthropic)',
+    placeholder: 'sk-ant-...',
+    linkInfo: 'console.anthropic.com'
+  }
+};
+let provedorEscolhido = 'groq';
+
+const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
+
+const CLAUDE_ENDPOINT = 'https://api.anthropic.com/v1/messages';
+const CLAUDE_MODEL = 'claude-sonnet-4-5';
+
+const RESPOSTAS_MOCK = [
+  "Mano, não achei sua API key salva. Sai e entra de novo colando sua key que eu fico brabo de verdade 🔥",
+];
+
+async function chamarIA(historico) {
+  if(!usuario.apiKey){
+    await new Promise(r => setTimeout(r, 400));
+    return RESPOSTAS_MOCK[0];
+  }
+  try{
+    if(usuario.provider === 'claude') return await chamarClaude(historico);
+    return await chamarGroq(historico);
+  }catch(e){
+    console.error(e);
+    return "Não consegui falar com o servidor, verifica sua internet aí mano.";
+  }
+}
+
+async function chamarGroq(historico){
+  const resp = await fetch(GROQ_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + usuario.apiKey
+    },
+    body: JSON.stringify({
+      model: GROQ_MODEL,
+      messages: [{role:'system', content: PHYX_SYSTEM_PROMPT}, ...historico],
+      temperature: 0.85
+    })
+  });
+  if(!resp.ok) return tratarErroHttp(resp.status, await resp.text(), 'Groq');
+  const data = await resp.json();
+  return data.choices?.[0]?.message?.content ?? "Veio uma resposta vazia, estranho... tenta de novo bro.";
+}
+
+async function chamarClaude(historico){
+  const resp = await fetch(CLAUDE_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': usuario.apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: CLAUDE_MODEL,
+      max_tokens: 1000,
+      system: PHYX_SYSTEM_PROMPT,
+      messages: historico
+    })
+  });
+  if(!resp.ok) return tratarErroHttp(resp.status, await resp.text(), 'Claude');
+  const data = await resp.json();
+  return data.content?.[0]?.text ?? "Veio uma resposta vazia, estranho... tenta de novo bro.";
+}
+
+function tratarErroHttp(status, corpo, provedor){
+  console.error('Erro ' + provedor + ':', status, corpo);
+  if(status === 401) return `Mano, essa API key do ${provedor} não rolou (erro 401). Confere se copiou certinho, tá de sacanagem essa key kkk.`;
+  if(status === 429) return "Pera aí bro, bateu o limite de requisições ou créditos. Espera um pouco ou confere seu saldo.";
+  return `Deu ruim aqui do ${provedor} (erro ${status}), tenta de novo mano.`;
+}
+
+let usuario = { nome: '', avatar: AVATARES[0] };
+let conversaAtual = { id: null, titulo: 'Nova conversa', mensagens: [], criadaEm: Date.now() };
+let historico = [];
+
+function salvarUsuario(){ localStorage.setItem('phyx_usuario', JSON.stringify(usuario)); }
+function carregarUsuario(){ const d = localStorage.getItem('phyx_usuario'); return d ? JSON.parse(d) : null; }
+function salvarHistorico(){ localStorage.setItem('phyx_historico', JSON.stringify(historico)); }
+function carregarHistorico(){ const d = localStorage.getItem('phyx_historico'); return d ? JSON.parse(d) : []; }
+
+function montarAvatares(){
+  const row = document.getElementById('avatarRow');
+  row.innerHTML = '';
+  AVATARES.forEach(av => {
+    const el = document.createElement('div');
+    el.className = 'avatar-opt' + (av === avatarEscolhido ? ' selected' : '');
+    el.textContent = av;
+    el.onclick = () => { avatarEscolhido = av; montarAvatares(); };
+    row.appendChild(el);
+  });
+}
+
+function montarProvedores(){
+  const row = document.getElementById('providerRow');
+  row.innerHTML = '';
+  Object.keys(PROVEDORES).forEach(key => {
+    const p = PROVEDORES[key];
+    const el = document.createElement('div');
+    el.className = 'provider-opt' + (key === provedorEscolhido ? ' selected' : '');
+    el.textContent = p.nome;
+    el.onclick = () => { provedorEscolhido = key; montarProvedores(); atualizarLabelKey(); };
+    row.appendChild(el);
+  });
+}
+
+function atualizarLabelKey(){
+  const p = PROVEDORES[provedorEscolhido];
+  document.getElementById('apiKeyLabel').textContent = `API Key (${p.linkInfo})`;
+  document.getElementById('apiKeyInput').placeholder = p.placeholder;
+}
+
+function entrar(){
+  const nome = document.getElementById('nomeInput').value.trim();
+  const apiKey = document.getElementById('apiKeyInput').value.trim();
+  if(!nome){ document.getElementById('nomeInput').focus(); return; }
+  usuario = { nome, avatar: avatarEscolhido, apiKey, provider: provedorEscolhido };
+  salvarUsuario();
+  iniciarApp();
+}
+
+function sair(){
+  if(!confirm('Quer sair mesmo, bro? Seu histórico continua salvo aqui no aparelho.')) return;
+  localStorage.removeItem('phyx_usuario');
+  location.reload();
+}
+
+function trocarApiKey(){
+  const provedorNovo = confirm('OK = Claude (Anthropic)  /  Cancelar = Groq') ? 'claude' : 'groq';
+  const nova = prompt(`Cola sua API Key do ${PROVEDORES[provedorNovo].nome} aqui:`, '');
+  if(nova === null || nova.trim() === '') return;
+  usuario.apiKey = nova.trim();
+  usuario.provider = provedorNovo;
+  salvarUsuario();
+  fecharSidebar();
+  alert(`Beleza, agora tô rodando no ${PROVEDORES[provedorNovo].nome}! 🔥`);
+}
+
+function iniciarApp(){
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('sbNome').textContent = usuario.nome;
+  document.getElementById('sbAvatar').textContent = usuario.avatar;
+
+  historico = carregarHistorico();
+  renderSidebarList();
+
+  conversaAtual = { id: cryptoId(), titulo: 'Nova conversa', mensagens: [], criadaEm: Date.now() };
+  adicionarMensagem('phyx', `Fala ${usuario.nome}! Eu sou o Phyx 🎮 Bora trocar uma ideia de script, projeto Roblox ou o que tiver na mente?`, false);
+}
+
+function cryptoId(){ return 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); }
+
+function adicionarMensagem(remetente, texto, salvar = true){
+  const msg = { remetente, texto, data: Date.now() };
+  conversaAtual.mensagens.push(msg);
+  renderMensagem(msg);
+  if(salvar) persistirConversaAtual();
+  scrollParaFim();
+}
+
+function renderMensagem(msg){
+  const wrap = document.createElement('div');
+  wrap.className = 'msg ' + (msg.remetente === 'usuario' ? 'user' : 'phyx');
+  let html = '';
+  if(msg.remetente === 'phyx') html += `<div class="msg-label">Phyx</div>`;
+  html += `<div class="bubble">${escapeHtml(msg.texto)}</div>`;
+  wrap.innerHTML = html;
+  document.getElementById('messages').appendChild(wrap);
+}
+
+function escapeHtml(t){
+  const d = document.createElement('div');
+  d.innerText = t;
+  return d.innerHTML;
+}
+
+function mostrarDigitando(){
+  const wrap = document.createElement('div');
+  wrap.className = 'msg phyx';
+  wrap.id = 'digitando';
+  wrap.innerHTML = `<div class="msg-label">Phyx</div><div class="bubble typing"><span></span><span></span><span></span></div>`;
+  document.getElementById('messages').appendChild(wrap);
+  scrollParaFim();
+}
+function removerDigitando(){
+  const el = document.getElementById('digitando');
+  if(el) el.remove();
+}
+
+function scrollParaFim(){
+  const m = document.getElementById('messages');
+  requestAnimationFrame(() => m.scrollTop = m.scrollHeight);
+}
+
+async function enviarMensagem(){
+  const input = document.getElementById('inputMsg');
+  const texto = input.value.trim();
+  if(!texto) return;
+  input.value = ''; autoGrow(input);
+  document.getElementById('btnEnviar').disabled = true;
+
+  adicionarMensagem('usuario', texto);
+
+  mostrarDigitando();
+  const historicoAPI = conversaAtual.mensagens.map(m => ({
+    role: m.remetente === 'usuario' ? 'user' : 'assistant',
+    content: m.texto
+  }));
+  const resposta = await chamarIA(historicoAPI);
+  removerDigitando();
+  adicionarMensagem('phyx', resposta);
+
+  document.getElementById('btnEnviar').disabled = false;
+}
+
+function checarEnter(e){
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault();
+    enviarMensagem();
+  }
+}
+
+function autoGrow(el){
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+}
+
+async function ideiaBraba(){
+  const pedido = "Me sugere uma ideia braba e específica de script ou projeto gamer (Lua, Python, JS ou Roblox) pra eu criar agora. Curto, só uma ideia, com um toque de explicação.";
+  adicionarMensagem('usuario', pedido);
+  mostrarDigitando();
+  const historicoAPI = conversaAtual.mensagens.map(m => ({
+    role: m.remetente === 'usuario' ? 'user' : 'assistant',
+    content: m.texto
+  }));
+  const resposta = await chamarIA(historicoAPI);
+  removerDigitando();
+  adicionarMensagem('phyx', resposta);
+}
+
+function persistirConversaAtual(){
+  if(conversaAtual.mensagens.length === 0) return;
+  if(conversaAtual.titulo === 'Nova conversa'){
+    const primeira = conversaAtual.mensagens.find(m => m.remetente === 'usuario');
+    if(primeira) conversaAtual.titulo = primeira.texto.slice(0, 32);
+  }
+  const idx = historico.findIndex(c => c.id === conversaAtual.id);
+  if(idx >= 0) historico[idx] = conversaAtual;
+  else historico.unshift(conversaAtual);
+  salvarHistorico();
+  renderSidebarList();
+}
+
+function renderSidebarList(){
+  const list = document.getElementById('sbList');
+  list.innerHTML = '';
+  if(historico.length === 0){
+    list.innerHTML = `<div class="sb-empty">Ainda não tem nada aqui, bro. Manda a primeira mensagem que eu salvo pra você 📂</div>`;
+    return;
+  }
+  historico.forEach(c => {
+    const item = document.createElement('div');
+    item.className = 'sb-item';
+    const data = new Date(c.criadaEm).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+    item.innerHTML = `<div class="t">${escapeHtml(c.titulo)}</div><div class="d">${data}</div>`;
+    item.onclick = () => { abrirConversa(c.id); fecharSidebar(); };
+    list.appendChild(item);
+  });
+}
+
+function abrirConversa(id){
+  const conv = historico.find(c => c.id === id);
+  if(!conv) return;
+  conversaAtual = conv;
+  document.getElementById('messages').innerHTML = '';
+  conversaAtual.mensagens.forEach(renderMensagem);
+  scrollParaFim();
+}
+
+function novaConversa(){
+  if(conversaAtual.mensagens.length > 0) persistirConversaAtual();
+  conversaAtual = { id: cryptoId(), titulo: 'Nova conversa', mensagens: [], criadaEm: Date.now() };
+  document.getElementById('messages').innerHTML = '';
+  adicionarMensagem('phyx', 'Beleza, começamos do zero! Manda a braba 😎', false);
+}
+
+function abrirSidebar(){
+  document.getElementById('sidebar').classList.add('show');
+  document.getElementById('overlay').classList.add('show');
+}
+function fecharSidebar(){
+  document.getElementById('sidebar').classList.remove('show');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+montarAvatares();
+montarProvedores();
+atualizarLabelKey();
+const userSalvo = carregarUsuario();
+if(userSalvo){
+  usuario = userSalvo;
+  avatarEscolhido = userSalvo.avatar;
+  iniciarApp();
+}
+</script>
+</body>
+</html>
